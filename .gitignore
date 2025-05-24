@@ -1,0 +1,22 @@
+logs/
+
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### macOS Patch ###
+# iCloud generated files
+*.icloud
+
+### Private Key ###
+.env
+reddit_cred.json
+
+# IPython
+profile_default/
+ipython_config.py
+
+# PyPI configuration file
+.pypirc
