@@ -1,0 +1,92 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg17
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./src/config/.env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./postgres/entrypoint.sh:/docker-entrypoint-initdb.d/02_grant.sh
+      - ./:/usr/local/project        
+    networks:
+      mlops-server:
+        aliases:
+          - postgres_db
+
+  airflow:
+    image: ku-stat-airflow:latest
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: airflow
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - ./src/config/.env
+    environment:
+      AIRFLOW_ROLE: webserver
+      PYTHONPATH: /usr/local/project
+    volumes:
+      - ./:/usr/local/project       
+    ports:
+      - "8080:8080"
+    networks:
+      mlops-server:
+        aliases:
+          - airflow
+
+  airflow_scheduler:
+    image: ku-stat-airflow:latest
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: airflow_scheduler
+    depends_on:
+      - airflow
+    env_file:
+      - ./src/config/.env
+    environment:
+      AIRFLOW_ROLE: scheduler
+      PYTHONPATH: /usr/local/project
+    volumes:
+      - ./:/usr/local/project  
+    networks:
+      mlops-server:
+        aliases:
+          - scheduler
+
+  mlflow:
+    image: ku-stat-mlflow:latest
+    build:
+      context: .
+      dockerfile: mlflow/Dockerfile
+    container_name: mlflow
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - ./src/config/.env
+    environment:
+      PYTHONPATH: /usr/local/project
+    volumes:
+      - ./:/usr/local/project      
+      - ./mlflow/mlruns:/mlflow/mlruns
+    ports:
+      - "5005:5005"
+    networks:
+      mlops-server:
+        aliases:
+          - mlflow
+
+volumes:
+  pg_data:
+
+networks:
+  mlops-server:
+    name: mlops-server
+    driver: bridge
