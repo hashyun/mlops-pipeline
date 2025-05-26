@@ -8,7 +8,7 @@
 - Airflow = 2.10.5
 
 ## Usage
-<code>src/config</code> 디렉터리에 <code>.env</code> 파일로 OpenAI api key, reddit api 정보 넣기
+<code>src/config</code> 디렉터리에 있는 숨김파일 <code>.env.example</code> 파일을 <code>.env</code> 파일로 복사해서 OpenAI api key, reddit api 정보 넣기
 ```bash
 docker compose up -d
 ```
