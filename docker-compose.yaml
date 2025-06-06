@@ -1,5 +1,32 @@
 services:
-
+  ## 개발용 DB
+  postgres-dev:
+    image: pgvector/pgvector:0.8.0-pg17
+    container_name: postgres-dev
+    ports:
+      - "5433:5432"
+    expose:
+      - "5433"
+    env_file:
+      - ./src/config/.env
+    environment:
+      TZ: Asia/Seoul
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_HOST: postgres_db
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgres-dev/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./postgres-dev/entrypoint.sh:/docker-entrypoint-initdb.d/02_grant.sh
+      - ./:/usr/local/project  
+    networks:
+      ml-dev-server:
+        aliases:
+          - postgres_dev_db
+  
+  ## 운영용 DB
   postgres:
     image: pgvector/pgvector:0.8.0-pg17
     container_name: postgres
@@ -7,15 +34,77 @@ services:
       - "5432:5432"
     env_file:
       - ./src/config/.env
+    environment:
+      TZ: Asia/Seoul
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_HOST: postgres_db
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/01_init.sql
-      - ./postgres/entrypoint.sh:/docker-entrypoint-initdb.d/02_grant.sh
+      # - ./postgres/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      # - ./postgres/entrypoint.sh:/docker-entrypoint-initdb.d/02_grant.sh
       - ./:/usr/local/project        
     networks:
       mlops-server:
         aliases:
           - postgres_db
+
+  ## 운영용 serving
+  serving:
+    image: ku-stat-serving:latest
+    build:
+      context: .
+      dockerfile: serving/fastapi.Dockerfile
+    container_name: serving
+    ports:
+      - "8089:8089"
+    volumes:
+      - model_data:/home/app/model_data
+      - ./serving/src/:/home/app
+    restart: unless-stopped
+    networks:
+      mlops-server:
+        aliases:
+          - serving
+
+  ## 개발용 client
+  client-dev:
+    image: ku-stat-client:latest
+    build:
+      context: .
+      dockerfile: client-dev/jupyter.Dockerfile
+    container_name: client-dev
+    ports:
+      - "8999:8888"
+    volumes:
+      - ./client-dev/src/:/home/work/
+      - ./notebook/:/home/work/notebook/
+      - model_data:/home/work/model_data
+    restart: unless-stopped
+    networks:
+      ml-dev-server:
+        aliases:
+          - client-dev
+  
+  ## 운영용 client
+  client:
+    image: ku-stat-client:latest
+    build:
+      context: .
+      dockerfile: client/jupyter.Dockerfile
+    container_name: client
+    ports:
+      - "8899:8888"
+    volumes:
+      - ./client/src/:/home/work/
+      - ./notebook/:/home/work/notebook/
+    restart: unless-stopped
+    networks:
+      mlops-server:
+        aliases:
+          - client
 
   airflow:
     image: ku-stat-airflow:latest
@@ -60,33 +149,38 @@ services:
         aliases:
           - scheduler
 
-  mlflow:
-    image: ku-stat-mlflow:latest
-    build:
-      context: .
-      dockerfile: mlflow/Dockerfile
-    container_name: mlflow
-    restart: unless-stopped
-    depends_on:
-      - postgres
-    env_file:
-      - ./src/config/.env
-    environment:
-      PYTHONPATH: /usr/local/project
-    volumes:
-      - ./:/usr/local/project      
-      - ./mlflow/mlruns:/mlflow/mlruns
-    ports:
-      - "5005:5005"
-    networks:
-      mlops-server:
-        aliases:
-          - mlflow
+  # mlflow:
+  #   image: ku-stat-mlflow:latest
+  #   build:
+  #     context: .
+  #     dockerfile: mlflow/Dockerfile
+  #   container_name: mlflow
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - postgres
+  #   env_file:
+  #     - ./src/config/.env
+  #   environment:
+  #     PYTHONPATH: /usr/local/project
+  #   volumes:
+  #     - ./:/usr/local/project      
+  #     - ./mlflow/mlruns:/mlflow/mlruns
+  #   ports:
+  #     - "5005:5005"
+  #   networks:
+  #     mlops-server:
+  #       aliases:
+  #         - mlflow
 
 volumes:
   pg_data:
+  pg_dev_data:
+  model_data:
 
 networks:
   mlops-server:
     name: mlops-server
+    driver: bridge
+  ml-dev-server:
+    name: ml-dev-server
     driver: bridge
