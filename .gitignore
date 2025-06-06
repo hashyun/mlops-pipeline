@@ -1,4 +1,6 @@
 logs/
+nltk_data/
+.ipynb_checkpoints/
 
 ### macOS ###
 # General
