@@ -7,3 +7,6 @@ loguru
 python-dotenv
 openpyxl
 catboost
+torch
+plotly
+dash
