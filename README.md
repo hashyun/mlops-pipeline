@@ -13,4 +13,14 @@
 docker compose up -d
 ```
 
+### Run the interactive dashboard
+
+The project includes a small Dash application that trains an LSTM model and visualises predictions. Launch it from the repository root:
+
+```bash
+python client/src/app.py
+```
+
+The script expects the dataset files under `notebook/data/` and does not require a `run_pipeline.sh` script.
+
 

@@ -4,15 +4,17 @@ import torch
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from pathlib import Path
 import dash
 from dash import dcc, html, Input, Output
 import plotly.graph_objs as go
 
 
 def load_data():
-    train_path = "notebook/data/merged_train (1).csv"
-    test_path = "notebook/data/merged_test (1).csv"
+    # Determine repository root to build dataset paths dynamically
+    root = Path(__file__).resolve().parents[2]
+    train_path = root / "notebook" / "data" / "merged_train (1).csv"
+    test_path = root / "notebook" / "data" / "merged_test (1).csv"
     train = pd.read_csv(train_path)
     test = pd.read_csv(test_path)
     train.columns = [c.lower().strip() for c in train.columns]
@@ -134,8 +136,8 @@ def create_dash(df):
         selected_date = df['date'].iloc[selected_day]
         sub_df = df.iloc[:selected_day + 1]
         fig_price = go.Figure([
-            go.Scatter(x=sub_df['date'], y=sub_df['Close'], mode='lines+markers', name='실제 Close'),
-            go.Scatter(x=sub_df['date'], y=sub_df['predicted_Close'], mode='lines+markers', name='예측 Close')
+            go.Scatter(x=sub_df['date'], y=sub_df['close'], mode='lines+markers', name='실제 Close'),
+            go.Scatter(x=sub_df['date'], y=sub_df['predicted_close'], mode='lines+markers', name='예측 Close')
         ])
         fig_price.update_layout(title='예측 vs 실제 (일별 업데이트)', xaxis_title='날짜', yaxis_title='가격')
         pos = df['pos'].iloc[selected_day]
@@ -149,8 +151,8 @@ def create_dash(df):
         )
         stats = html.Div([
             html.P(f"선택 날짜: {selected_date.date()}"),
-            html.P(f"실제 Close: {df['Close'].iloc[selected_day]:.2f}"),
-            html.P(f"예측 Close: {df['predicted_Close'].iloc[selected_day]:.2f}"),
+            html.P(f"실제 Close: {df['close'].iloc[selected_day]:.2f}"),
+            html.P(f"예측 Close: {df['predicted_close'].iloc[selected_day]:.2f}"),
             sentiment_fig
         ])
         return fig_price, stats
@@ -164,7 +166,7 @@ def main():
     model = train_model(X_train, y_train, seq_length, input_size=len(feature_cols))
     preds = predict(model, X_test, close_scaler)
     df = test.iloc[seq_length:].copy()
-    df['predicted_Close'] = preds
+    df['predicted_close'] = preds
     app = create_dash(df)
     app.run_server(debug=True)
 
