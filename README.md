@@ -16,6 +16,8 @@
 
 스크립트는 <code>.env</code> 파일이 없을 경우 예제 파일을 복사한 뒤 Docker Compose를 이용해 필요한 컨테이너들을 띄웁니다.
 
+텍스트 정제나 감성 분석 기능을 사용하려면 별도로 <code>nltk</code> 등의 패키지를 설치해야 합니다. Airflow에서 LSTM 파이프라인만 실행할 경우 이 의존성들이 없어도 됩니다.
+
 
 
 ### LSTM Pipeline
