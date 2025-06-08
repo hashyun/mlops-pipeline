@@ -1,6 +1,13 @@
+import sys
+from pathlib import Path
+
 import pandas as pd
 from dash import Dash, html, dcc
 import plotly.graph_objs as go
+
+# Allow running directly via `python dash_app/app.py`
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+
 from src.modules.lstm_utils import load_model, generate_predictions
 
 TRAIN_PATH = 'notebook/data/merged_train (1).csv'
@@ -9,6 +16,12 @@ MODEL_PATH = 'notebook/weights/lstm_model.pth'
 
 train_df = pd.read_csv(TRAIN_PATH)
 test_df = pd.read_csv(TEST_PATH)
+
+model_path = Path(MODEL_PATH)
+if not model_path.exists():
+    raise FileNotFoundError(
+        f"Model weights not found at {MODEL_PATH}. Run the Airflow pipeline first."
+    )
 
 model = load_model(MODEL_PATH, input_size=train_df.shape[1] - 1)
 
