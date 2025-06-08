@@ -26,7 +26,7 @@ FROM base AS runner
 COPY --from=builder $AIRFLOW_HOME/.venv .venv
 ENV PATH="$AIRFLOW_HOME/.venv/bin:$PATH"
 
-ENV PYTHONPATH='/usr/local/project'
+ENV PYTHONPATH='/usr/local/project:/usr/local/project/airflow/dags'
 
 WORKDIR /usr/local/airflow
 COPY airflow/dags/ ./dags/

@@ -119,7 +119,7 @@ services:
       - ./src/config/.env
     environment:
       AIRFLOW_ROLE: webserver
-      PYTHONPATH: /usr/local/project
+      PYTHONPATH: /usr/local/project:/usr/local/project/airflow/dags
     volumes:
       - ./:/usr/local/project       
     ports:
@@ -141,7 +141,7 @@ services:
       - ./src/config/.env
     environment:
       AIRFLOW_ROLE: scheduler
-      PYTHONPATH: /usr/local/project
+      PYTHONPATH: /usr/local/project:/usr/local/project/airflow/dags
     volumes:
       - ./:/usr/local/project  
     networks:
