@@ -13,4 +13,12 @@
 docker compose up -d
 ```
 
+### Notebook data paths
+
+The LSTM and Dash notebooks load their CSV files from `notebook/data` when
+the directory exists, otherwise they fall back to a top-level `data`
+directory. This allows them to run from either the repository root or the
+`notebook` directory without modification.
+
+
 
