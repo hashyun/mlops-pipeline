@@ -13,4 +13,16 @@
 docker compose up -d
 ```
 
+### Notebook data paths
 
+The LSTM and Dash notebooks load their CSV files from `notebook/data` when
+the directory exists, otherwise they fall back to a top-level `data`
+directory. This allows them to run from either the repository root or the
+`notebook` directory without modification.
+
+
+
+
+### Airflow LSTM pipeline
+
+The repository includes a DAG named `lstm_pipeline` that trains the LSTM model using `src/lstm_pipeline.py`. Ensure the Airflow image has PyTorch and scikit-learn installed so the task can run successfully.
